@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>AutoFinder - Поиск автомобилей</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #7c3aed;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --gray-light: #e2e8f0;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Шапка */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 3em;
+            font-weight: 800;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            margin-bottom: 10px;
+        }
+
+        .header h1 i {
+            animation: bounce 2s infinite;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+
+        /* Карточка поиска */
+        .search-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .search-input-wrapper {
+            flex: 1;
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            border: 2px solid var(--gray-light);
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .search-box button {
+            padding: 0 35px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            white-space: nowrap;
+        }
+
+        .search-box button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        /* Фильтры */
+        .filters {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .filter-group {
+            position: relative;
+        }
+
+        .filter-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+            font-size: 14px;
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--gray-light);
+            border-radius: 10px;
+            font-size: 14px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+
+        /* Статистика */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            background: white;
+            padding: 15px 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        .stats-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-badge {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .stats-time {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .stats-right {
+            display: flex;
+            gap: 10px;
+        }
+
+        .view-btn {
+            padding: 8px 12px;
+            border: 2px solid var(--gray-light);
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .view-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Сетка автомобилей */
+        .cars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .cars-grid.list-view {
+            grid-template-columns: 1fr;
+        }
+
+        .cars-grid.list-view .car-card {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+        }
+
+        .cars-grid.list-view .car-image {
+            height: 200px;
+        }
+
+        /* Карточка автомобиля */
+        .car-card {
+            background: white;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid var(--gray-light);
+        }
+
+        .car-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 30px rgba(37, 99, 235, 0.2);
+            border-color: var(--primary);
+        }
+
+        .car-image {
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .car-image::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        .car-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.3s;
+        }
+
+        .car-card:hover .car-image img {
+            transform: scale(1.1);
+        }
+
+        .car-badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 6px 12px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .car-info {
+            padding: 20px;
+        }
+
+        .car-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 12px;
+        }
+
+        .car-title {
+            font-size: 1.2em;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .car-price {
+            font-size: 1.3em;
+            font-weight: 800;
+            color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .car-specs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--gray-light);
+        }
+
+        .car-spec {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 13px;
+            color: var(--gray);
+        }
+
+        .car-spec i {
+            color: var(--primary);
+        }
+
+        .car-description {
+            font-size: 13px;
+            color: var(--gray);
+            line-height: 1.5;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        /* Лоадер */
+        .loader {
+            text-align: center;
+            padding: 60px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--gray-light);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        .spinner-pulse {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Модальное окно */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            width: 95%;
+            max-width: 1000px;
+            margin: 30px auto;
+            border-radius: 24px;
+            position: relative;
+            max-height: 85vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(50px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .modal-close {
+            position: absolute;
+            right: 20px;
+            top: 20px;
+            width: 40px;
+            height: 40px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 2;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+
+        .modal-close:hover {
+            transform: rotate(90deg);
+            background: var(--danger);
+            color: white;
+        }
+
+        .modal-car {
+            display: flex;
+            gap: 30px;
+            padding: 30px;
+        }
+
+        .modal-gallery {
+            flex: 0 0 350px;
+        }
+
+        .modal-main-image {
+            width: 100%;
+            height: 250px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .modal-main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-thumbnails {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+
+        .modal-thumb {
+            height: 70px;
+            border-radius: 8px;
+            overflow: hidden;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.3s;
+        }
+
+        .modal-thumb:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .modal-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .modal-info {
+            flex: 1;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            font-size: 2em;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .modal-price {
+            font-size: 2.5em;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .modal-specs {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+            padding: 20px;
+            background: var(--light);
+            border-radius: 16px;
+        }
+
+        .modal-spec-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .modal-spec-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-spec-text {
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-spec-label {
+            font-size: 12px;
+            color: var(--gray);
+        }
+
+        .modal-description {
+            margin: 20px 0;
+            line-height: 1.8;
+            color: var(--gray);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--light);
+            color: var(--dark);
+            border: 2px solid var(--gray-light);
+        }
+
+        .btn-secondary:hover {
+            background: var(--gray-light);
+        }
+
+        /* Сообщения */
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            background: white;
+            border-radius: 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 2s infinite;
+        }
+
+        .empty-state h3 {
+            font-size: 24px;
+            color: var(--dark);
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--gray);
+        }
+
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .search-box {
+                flex-direction: column;
+            }
+
+            .search-box button {
+                padding: 15px;
+            }
+
+            .cars-grid.list-view .car-card {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-car {
+                flex-direction: column;
+                padding: 20px;
+            }
+
+            .modal-gallery {
+                flex: 0 0 auto;
+            }
+
+            .modal-specs {
+                grid-template-columns: 1fr;
+            }
+
+            .modal-actions {
+                flex-direction: column;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+
+            .stats-left {
+                flex-direction: column;
+            }
+        }
+
+        /* Анимации */
+        .fade-in {
+            animation: fadeIn 0.5s;
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(-20px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>
+                <i>🚗</i> AutoFinder
+            </h1>
+            <p>Найди автомобиль своей мечты</p>
+        </div>
+
+        <div class="search-card">
+            <div class="search-box">
+                <div class="search-input-wrapper">
+                    <i class="search-icon">🔍</i>
+                    <input type="text" id="searchInput" placeholder="Марка, модель или год... (например: BMW X5 2020)" value="Toyota">
+                </div>
+                <button onclick="searchCars()">
+                    <span>Найти</span>
+                    <i>→</i>
+                </button>
+            </div>
+
+            <div class="filters">
+                <div class="filter-group">
+                    <label>📅 Год от</label>
+                    <select id="yearFrom" class="filter-select">
+                        <option value="">Любой</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>📅 Год до</label>
+                    <select id="yearTo" class="filter-select">
+                        <option value="">Любой</option>
+                        <option value="2024">2024</option>
+                        <option value="2023">2023</option>
+                        <option value="2022">2022</option>
+                        <option value="2021">2021</option>
+                        <option value="2020">2020</option>
+                        <option value="2019">2019</option>
+                        <option value="2018">2018</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>💰 Цена до</label>
+                    <select id="priceMax" class="filter-select">
+                        <option value="">Любая</option>
+                        <option value="1000000">1 000 000 ₽</option>
+                        <option value="2000000">2 000 000 ₽</option>
+                        <option value="3000000">3 000 000 ₽</option>
+                        <option value="5000000">5 000 000 ₽</option>
+                        <option value="10000000">10 000 000 ₽</option>
+                    </select>
+                </div>
+
+                <div class="filter-group">
+                    <label>🔧 Коробка</label>
+                    <select id="transmission" class="filter-select">
+                        <option value="">Любая</option>
+                        <option value="Автомат">Автомат</option>
+                        <option value="Механика">Механика</option>
+                        <option value="Робот">Робот</option>
+                        <option value="Вариатор">Вариатор</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div id="stats" class="stats" style="display: none;">
+            <div class="stats-left">
+                <span class="stats-badge" id="countDisplay">0 автомобилей</span>
+                <span class="stats-time" id="timeDisplay"></span>
+            </div>
+            <div class="stats-right">
+                <button class="view-btn active" onclick="changeView('grid')">📱 Сетка</button>
+                <button class="view-btn" onclick="changeView('list')">📋 Список</button>
+            </div>
+        </div>
+
+        <div id="carsGrid" class="cars-grid"></div>
+
+        <div id="loading" class="loader" style="display: none;">
+            <div class="spinner-pulse"></div>
+            <p style="color: white; font-size: 18px;">Поиск автомобилей...</p>
+        </div>
+    </div>
+
+    <div id="modal" class="modal" onclick="closeModal(event)">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <div class="modal-close" onclick="closeModal(event)">✕</div>
+            <div id="modalContent" class="modal-car"></div>
+        </div>
+    </div>
+
+    <script>
+        let allCars = [];
+        let currentView = 'grid';
+
+        function searchCars() {
+            const query = document.getElementById('searchInput').value.trim();
+            const yearFrom = document.getElementById('yearFrom').value;
+            const yearTo = document.getElementById('yearTo').value;
+            const priceMax = document.getElementById('priceMax').value;
+            const transmission = document.getElementById('transmission').value;
+            
+            if (!query) {
+                alert('Введите марку или модель автомобиля');
+                return;
+            }
+            
+            showLoading(true);
+            
+            setTimeout(() => {
+                const demoData = generateDemoData(query);
+                let filteredData = filterCars(demoData, yearFrom, yearTo, priceMax, transmission);
+                displayResults(filteredData);
+                showLoading(false);
+            }, 1500);
+        }
+
+        function generateDemoData(query) {
+            const brands = ['BMW', 'Mercedes', 'Audi', 'Toyota', 'Honda', 'Nissan', 'Volkswagen', 'Porsche', 'Lexus', 'Mazda'];
+            const models = {
+                'BMW': ['X5', 'X3', 'X1', '3 Series', '5 Series', '7 Series', 'M3', 'M5'],
+                'Mercedes': ['E-Class', 'C-Class', 'S-Class', 'GLC', 'GLE', 'GLS', 'AMG GT'],
+                'Audi': ['A4', 'A6', 'A8', 'Q5', 'Q7', 'Q8', 'RS6', 'R8'],
+                'Toyota': ['Camry', 'RAV4', 'Corolla', 'Land Cruiser', 'Prado', 'Highlander', 'C-HR'],
+                'Honda': ['Accord', 'Civic', 'CR-V', 'Pilot', 'HR-V', 'Odyssey'],
+                'Nissan': ['Qashqai', 'X-Trail', 'Murano', 'Patrol', 'GT-R', 'Juke'],
+                'Volkswagen': ['Golf', 'Passat', 'Tiguan', 'Touareg', 'Polo', 'Arteon'],
+                'Porsche': ['911', 'Cayenne', 'Panamera', 'Macan', 'Taycan'],
+                'Lexus': ['RX', 'NX', 'LX', 'ES', 'GS', 'LS'],
+                'Mazda': ['CX-5', 'CX-9', 'Mazda3', 'Mazda6', 'MX-5']
+            };
+
+            let results = [];
+            const searchLower = query.toLowerCase();
+
+            for (let i = 0; i < 12; i++) {
+                let brand, model;
+                
+                if (Math.random() > 0.3) {
+                    // Пытаемся подобрать под запрос
+                    const possibleBrands = brands.filter(b => b.toLowerCase().includes(searchLower));
+                    if (possibleBrands.length > 0) {
+                        brand = possibleBrands[Math.floor(Math.random() * possibleBrands.length)];
+                    } else {
+                        brand = brands[Math.floor(Math.random() * brands.length)];
+                    }
+                } else {
+                    brand = brands[Math.floor(Math.random() * brands.length)];
+                }
+
+                const brandModels = models[brand] || ['Unknown'];
+                model = brandModels[Math.floor(Math.random() * brandModels.length)];
+
+                const year = 2018 + Math.floor(Math.random() * 6);
+                const price = 1500000 + Math.floor(Math.random() * 5000000);
+                const mileage = 20000 + Math.floor(Math.random() * 80000);
+                const transmissions = ['Автомат', 'Механика', 'Робот', 'Вариатор'];
+                const fuels = ['Бензин', 'Дизель', 'Гибрид', 'Электро'];
+                const colors = ['Черный', 'Белый', 'Серый', 'Синий', 'Красный'];
+                const engines = ['2.0', '2.5', '3.0', '4.0', '5.0'];
+                
+                const car = {
+                    make: brand,
+                    model: model,
+                    year: year,
+                    mileage: mileage,
+                    price: price,
+                    fuel_type: fuels[Math.floor(Math.random() * fuels.length)],
+                    transmission: transmissions[Math.floor(Math.random() * transmissions.length)],
+                    engine_size: engines[Math.floor(Math.random() * engines.length)],
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    owners: Math.floor(Math.random() * 3) + 1,
+                    description: `Автомобиль в отличном состоянии. Полностью исправен, своевременное обслуживание. Цвет ${colors[Math.floor(Math.random() * colors.length)].toLowerCase()}, салон в идеальном состоянии. Комплектация: климат-контроль, подогрев сидений, люк, парктроники, камера заднего вида. Не бит, не крашен. ПТС оригинал.`,
+                    image: `https://via.placeholder.com/400x300/2563eb/ffffff?text=${brand}+${model}`
+                };
+
+                // Проверяем соответствие запросу
+                const carTitle = (car.make + ' ' + car.model).toLowerCase();
+                if (carTitle.includes(searchLower) || searchLower === '') {
+                    results.push(car);
+                }
+            }
+
+            return results;
+        }
+
+        function filterCars(cars, yearFrom, yearTo, priceMax, transmission) {
+            return cars.filter(car => {
+                if (yearFrom && car.year < parseInt(yearFrom)) return false;
+                if (yearTo && car.year > parseInt(yearTo)) return false;
+                if (priceMax && car.price > parseInt(priceMax)) return false;
+                if (transmission && car.transmission !== transmission) return false;
+                return true;
+            });
+        }
+
+        function displayResults(cars) {
+            allCars = cars;
+            const grid = document.getElementById('carsGrid');
+            const stats = document.getElementById('stats');
+            const countDisplay = document.getElementById('countDisplay');
+            
+            if (cars.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">😢</div>
+                        <h3>Автомобили не найдены</h3>
+                        <p>Попробуйте изменить параметры поиска</p>
+                    </div>
+                `;
+                stats.style.display = 'none';
+                return;
+            }
+
+            countDisplay.textContent = cars.length + ' автомобилей';
+            document.getElementById('timeDisplay').textContent = '⏱️ ' + (Math.random() * 2 + 0.5).toFixed(1) + ' сек';
+            stats.style.display = 'flex';
+            
+            renderCars();
+        }
+
+        function renderCars() {
+            const grid = document.getElementById('carsGrid');
+            grid.className = 'cars-grid ' + (currentView === 'list' ? 'list-view' : '');
+            
+            let html = '';
+            
+            for (let i = 0; i < allCars.length; i++) {
+                const car = allCars[i];
+                const title = car.make + ' ' + car.model;
+                const price = formatPrice(car.price);
+                
+                html += `
+                    <div class="car-card" onclick="openModal(${i})">
+                        <div class="car-image">
+                            <span class="car-badge">${car.year}</span>
+                            <img src="${car.image}" alt="${title}">
+                        </div>
+                        <div class="car-info">
+                            <div class="car-header">
+                                <div class="car-title">${escapeHTML(title)}</div>
+                                <div class="car-price">${price}</div>
+                            </div>
+                            <div class="car-specs">
+                                <div class="car-spec"><i>📏</i> ${formatMileage(car.mileage)}</div>
+                                <div class="car-spec"><i>⚙️</i> ${car.transmission}</div>
+                                <div class="car-spec"><i>⛽</i> ${car.fuel_type}</div>
+                            </div>
+                            <div class="car-description">
+                                ${escapeHTML(car.description.substring(0, 100))}...
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            grid.innerHTML = html;
+        }
+
+        function openModal(index) {
+            const car = allCars[index];
+            if (!car) return;
+            
+            const title = car.make + ' ' + car.model;
+            const price = formatPrice(car.price);
+            
+            const modalContent = document.getElementById('modalContent');
+            modalContent.innerHTML = `
+                <div class="modal-gallery">
+                    <div class="modal-main-image">
+                        <img src="${car.image}" alt="${title}">
+                    </div>
+                    <div class="modal-thumbnails">
+                        <div class="modal-thumb"><img src="${car.image}" alt=""></div>
+                        <div class="modal-thumb"><img src="${car.image}" alt=""></div>
+                        <div class="modal-thumb"><img src="${car.image}" alt=""></div>
+                    </div>
+                </div>
+                <div class="modal-info">
+                    <div class="modal-header">
+                        <h2>${escapeHTML(title)}</h2>
+                        <div class="modal-price">${price}</div>
+                    </div>
+                    
+                    <div class="modal-specs">
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">📅</div>
+                            <div>
+                                <div class="modal-spec-label">Год выпуска</div>
+                                <div class="modal-spec-text">${car.year}</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">📏</div>
+                            <div>
+                                <div class="modal-spec-label">Пробег</div>
+                                <div class="modal-spec-text">${formatMileage(car.mileage)}</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">⚙️</div>
+                            <div>
+                                <div class="modal-spec-label">КПП</div>
+                                <div class="modal-spec-text">${car.transmission}</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">⛽</div>
+                            <div>
+                                <div class="modal-spec-label">Топливо</div>
+                                <div class="modal-spec-text">${car.fuel_type}</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">🔧</div>
+                            <div>
+                                <div class="modal-spec-label">Двигатель</div>
+                                <div class="modal-spec-text">${car.engine_size} л</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">🎨</div>
+                            <div>
+                                <div class="modal-spec-label">Цвет</div>
+                                <div class="modal-spec-text">${car.color}</div>
+                            </div>
+                        </div>
+                        <div class="modal-spec-item">
+                            <div class="modal-spec-icon">👤</div>
+                            <div>
+                                <div class="modal-spec-label">Владельцы</div>
+                                <div class="modal-spec-text">${car.owners}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="modal-description">
+                        ${escapeHTML(car.description)}
+                    </div>
+                    
+                    <div class="modal-actions">
+                        <a href="https://auto.ru/-/search?category=cars&model=${encodeURIComponent(car.model)}&mark=${encodeURIComponent(car.make)}" target="_blank" class="modal-btn btn-primary">
+                            <i>🚗</i> Авто.ру
+                        </a>
+                        <a href="https://www.avito.ru/all/avtomobili?q=${encodeURIComponent(title)}" target="_blank" class="modal-btn btn-secondary">
+                            <i>🏷️</i> Avito
+                        </a>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modal').style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function changeView(view) {
+            currentView = view;
+            const buttons = document.querySelectorAll('.view-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            renderCars();
+        }
+
+        function closeModal(event) {
+            if (event.target === document.getElementById('modal') || event.target.classList.contains('modal-close')) {
+                document.getElementById('modal').style.display = 'none';
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        function showLoading(show) {
+            document.getElementById('loading').style.display = show ? 'block' : 'none';
+            if (show) {
+                document.getElementById('carsGrid').innerHTML = '';
+                document.getElementById('stats').style.display = 'none';
+            }
+        }
+
+        function formatPrice(price) {
+            return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' ₽';
+        }
+
+        function formatMileage(mileage) {
+            return mileage.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ") + ' км';
+        }
+
+        function escapeHTML(str) {
+            if (!str) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        document.getElementById('searchInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') searchCars();
+        });
+
+        searchCars();
+    </script>
+</body>
+</html>
